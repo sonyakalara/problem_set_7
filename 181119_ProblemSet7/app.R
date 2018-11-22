@@ -30,7 +30,7 @@ ui <- fluidPage(
     titlePanel("Polling Data from NYT's Upshot"), 
     
     ## Renders image to display NYT logo
-    UIOutput("image"), 
+    uiOutput("image"),
     h5("Click on any one of the districts polled by the New York Times! In the popup you will
      find information about the Republican advantage compared to the actual vote margin experienced
      by the candidates against their Democratic opponents. Also included are the titles of the winning
