@@ -19,16 +19,26 @@ library(sp)
 library(rgdal)
 library(raster)
 library(tidyverse)
+library(moderndive)
 
-  
+
 ui <- fluidPage(
-  
-  titlePanel("Polling Data from NYT's Upshot"), 
-  
-  leafletOutput("mymap"),
-  uiOutput("tab"), 
-  uiOutput("trial")
-  )
+  tabsetPanel(
+    tabPanel("Summary", fluid = TRUE,
+    titlePanel("Polling Data from NYT's Upshot"), 
+    h5("Click on any one of the districts polled by the New York Times! In the popup you will
+     find information about the Republican advantage compared to the actual vote margin experienced
+     by the candidates against their Democratic opponents. Also included are the titles of the winning
+     candidate and their respective party. In the downbar, you will find a model comparing the turnout score
+     against the final weight for voters in the final wave of polling in that district. This plot also
+     has a linear model to easily identify relationships in different congressional districts.")), 
+    
+    tabPanel("Map & Plot", fluid = TRUE,
+    titlePanel("Click a District!"), 
+    leafletOutput("mymap", height = "350px"),
+    uiOutput("tab"), 
+  plotOutput("trial", height = "200px"))
+  ))
 
 
 districts <- read_xlsx("districts.xlsx")
@@ -72,26 +82,12 @@ server <- function(input, output) {
       path <- paste0("https://raw.githubusercontent.com/TheUpshot/2018-live-poll-results/master/data/elections-poll-", click$id,".csv")
       df <- read_csv(path)
       
-      output$trial <- renderTable({
-        
-        file <- df %>%  
-          transmute(response, final_weight, likely = as.factor(likely)) %>% 
-          mutate(likely = fct_relevel(likely, c("Already voted", "Almost certain","Very likely", "Somewhat likely", "Not very likely", "Not at all likely"))) %>% 
-          group_by(likely, response) %>% 
-          tally(wt = final_weight) %>%
-          filter(! likely == "[DO NOT READ] Don't know/Refused") %>% 
-          spread(key = response, value = n) 
-        
-        file[is.na(file)] <- 0
-        
-        file <- file %>% 
-          mutate(all = Dem + Rep + Und) %>% 
-          mutate(Dem = Dem/all,
-                 Rep = Rep/all,
-                 Und = Und/all) %>% 
-          adorn_pct_formatting(digits = 0, affix_sign = TRUE) %>% 
-          dplyr::select(likely, Dem, Rep, Und) 
-        
+      output$trial <- renderPlot({
+        file <- df %>%
+          ggplot(aes(x = as.numeric(turnout_score), y = as.numeric(final_weight))) +
+          geom_point() +
+          labs(x = "Turnout Score", y = "Final Weight") +
+          geom_smooth(method = "lm", se = FALSE)
         return(file)
         path <- NULL
       })
