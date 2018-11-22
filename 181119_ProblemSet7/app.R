@@ -30,7 +30,7 @@ ui <- fluidPage(
     titlePanel("Polling Data from NYT's Upshot"), 
     
     ## Renders image to display NYT logo
-    renderUI("image"), 
+    UIOutput("image"), 
     h5("Click on any one of the districts polled by the New York Times! In the popup you will
      find information about the Republican advantage compared to the actual vote margin experienced
      by the candidates against their Democratic opponents. Also included are the titles of the winning
@@ -131,10 +131,12 @@ server <- function(input, output) {
   
   ## Defines the image that should be rendered
   ## from its online url
+  
   output$image = renderUI({
     tags$img(src = "https://www.de-simone.com/assets/new-york-times-logo-large-e1439227085840.jpg", width = "100%")})
   
   ## Creates a link to the github repository
+  
   url <- a("sonyakalara", href="https://github.com/sonyakalara/problem_set_7")
   output$tab <- renderUI(tagList("Link to github repository:", url))
 }
